@@ -1,6 +1,0 @@
-install.packages("knitcitations")
-install.packages
-install.packages("spatstat")
-load("/Users/rbirger/EpiSpace.RData")
-ls()
-ls()
