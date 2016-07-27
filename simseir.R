@@ -1,8 +1,7 @@
-simseir <- function(M, N, beta, ki, thetai, ke = ki, thetae = thetai, latencydist = "fixed", 
-                    latencyperiod = 0){
+simseir <- function(M, N, beta, I0, ki, thetai, ke = ki, thetae = thetai, latencydist = "fixed", 
+                    latencyperiod = 0, rewire.time){
   
   # First do some input format checking
-  
   if (!is.null(M))
   {
     # M should be an edgelist matrix
@@ -28,7 +27,7 @@ simseir <- function(M, N, beta, ki, thetai, ke = ki, thetae = thetai, latencydis
   is_susceptible = array(TRUE, N)
   
   # get location of first infection
-  init <- sample(1:N,1)  # Inital infected individual is chosen at random
+  init <- sample(I0:N,1)  # Inital infected individual is chosen at random
   
   # update state vectors
   is_infectious[init] = TRUE
@@ -162,6 +161,7 @@ simseir <- function(M, N, beta, ki, thetai, ke = ki, thetae = thetai, latencydis
       # record removal time
       inf.list[which(inf.list[,1]==new.rec), 5] <- cm.time
       
+      
       # Update recovery times and next infected to recover
       r.time[nextrec] <- NA
       if(count_i > 0) 
@@ -189,7 +189,7 @@ simseir <- function(M, N, beta, ki, thetai, ke = ki, thetae = thetai, latencydis
       neighbour = get.neighborhood(net, new.trans)
       # double
       neighbour_id = get.edgeIDs(net,new.trans)
-      # find susceptoble ones
+      # find susceptoble oness
       susc_neighbour = neighbour[is_susceptible[neighbour]]
       # double
       susc_neighbour_id = neighbour_id[is_susceptible[neighbour]]
@@ -206,12 +206,24 @@ simseir <- function(M, N, beta, ki, thetai, ke = ki, thetae = thetai, latencydis
       nexttrans <-  which(t.time == min(t.time,na.rm = TRUE))
       r.time[new.trans] <- cm.time + rgamma(1,ki, scale = thetai)
       if (r.time[new.trans] < r.time[nextrec]) nextrec <- new.trans
+      
+      
     }
+    #print(r.time[nextrec])
+    
+    #if( is.na(r.time[nextrec]) == F && r.time[nextrec] > 365){print('updating to next year'); break}
+    if( is.na(r.time[nextrec]) == F && r.time[nextrec] > rewire.time && r.time[nextrec] < Inf){print('breaking'); break}
+    
+    
+    
     if (count_e + count_i == 0) {break}	# No more infectious or exposed members, so epidemic ends
+    
+    
+    
+    
   }		
-  
   # reset time 0 to be time of first R
-  inf.list[,3:5] <- inf.list[,3:5] - min(inf.list[,5])
+  inf.list[,3:5] <- inf.list[,3:5] - min(inf.list[,5],na.rm = T)
   
   # add any never infecteds to list
   if (any(is_susceptible)) inf.list <- rbind(inf.list, cbind(which(is_susceptible), NA, NA, NA, NA) )

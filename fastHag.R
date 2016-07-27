@@ -44,9 +44,14 @@ rand_no_overlap <- function(n, x_min = 0, x_max = 1000, y_min = x_min, y_max = x
 }
 
 sim_node_cov <- function(N, n_village, city_size, village_size){
-
+  
   # decide on size of villages
-  pop_size_boundary <-c(0,sort(sample(1:(N-1), (n_village - 1), replace = FALSE)),N)
+  if(N < n_village){
+    pop_size_boundary <-c(0,sort(sample(1:(N-1), (n_village - 1), replace = TRUE)),N)
+  }else{
+    pop_size_boundary <-c(0,sort(sample(1:(N-1), (n_village - 1), replace = FALSE)),N)
+  }
+  
   pop_size <-diff(pop_size_boundary)
   
   # do village
@@ -97,7 +102,7 @@ comb2 <- function(n){
 }
 
 build_village_dcm <- function(node_cov, village){
-  
+
   # pull out indidvuals from stated village 
   in_village = which(node_cov[,"village"] == village)
   n_node = length(in_village)
@@ -129,34 +134,34 @@ build_village_dcm <- function(node_cov, village){
   dyad_cov[,"housedist"] = sqrt((node_cov[dyad_cov[,1],"house_xpos"] - node_cov[dyad_cov[,2],"house_xpos"])^2 + (node_cov[dyad_cov[,1],"house_ypos"] - node_cov[dyad_cov[,2],"house_ypos"])^2)  
   # age
   dyad_cov[,"agediff"] = abs(node_cov[dyad_cov[,1], "age"] - node_cov[dyad_cov[,2],"age"])
-
+  
   # fix up node ids
   dyad_cov[,1:2] =  dyad_cov[,1:2] + (first_index - 1)
   
-#   # generate dyadic cov matrix (using BuildX function which is actually pretty useless)
-#   cov_name = colnames(node_cov)
-#   dyad_cov = BuildX(node_cov, 
-#                     unaryCol = c(which(cov_name == "household"), which(cov_name == "age")), 
-#                     unaryFunc = c("absdiff", "absdiff"), 
-#                     binaryCol = list(c(which(cov_name == "house_xpos"), which(cov_name == "house_ypos"))), 
-#                     binaryFunc = c("euclidean") )
-#   
-#   # add extra columns to dyadic covariate matrix (need this since in BuildX "match" doesn't work in unary func when column is logical)
-#   for(i in c("male", "female", "class1", "class2")){
-#     dyad_cov = cbind(dyad_cov, as.numeric(node_cov[dyad_cov[,1],i] & node_cov[dyad_cov[,2],i]))
-#     colnames(dyad_cov)[ncol(dyad_cov)] <- i
-#   }  
-#   
-#   # fix up node ids
-#   dyad_cov[,1:2] =  dyad_cov[,1:2] + (first_index - 1)
-#   
-#   # dyad_cov now has columns named: 
-#   # node.1,    node.2,    (Intercept), household.diff, age.diff,    house_xpos.house_ypos.L2Dist, male,       female,       class1,    class2
-#   # want columns to follow Hagelooch example: 
-#   # Node ID 1, Node ID 2, Household,   Classroom 1,    Classroom 2, House Distance,               Male Match, Female Match, Age Diff
-#   # so reorder columns
-#   dyad_cov <- dyad_cov[,c(1:4, 9:10, 5, 7:8, 6)]
-#   
+  #   # generate dyadic cov matrix (using BuildX function which is actually pretty useless)
+  #   cov_name = colnames(node_cov)
+  #   dyad_cov = BuildX(node_cov, 
+  #                     unaryCol = c(which(cov_name == "household"), which(cov_name == "age")), 
+  #                     unaryFunc = c("absdiff", "absdiff"), 
+  #                     binaryCol = list(c(which(cov_name == "house_xpos"), which(cov_name == "house_ypos"))), 
+  #                     binaryFunc = c("euclidean") )
+  #   
+  #   # add extra columns to dyadic covariate matrix (need this since in BuildX "match" doesn't work in unary func when column is logical)
+  #   for(i in c("male", "female", "class1", "class2")){
+  #     dyad_cov = cbind(dyad_cov, as.numeric(node_cov[dyad_cov[,1],i] & node_cov[dyad_cov[,2],i]))
+  #     colnames(dyad_cov)[ncol(dyad_cov)] <- i
+  #   }  
+  #   
+  #   # fix up node ids
+  #   dyad_cov[,1:2] =  dyad_cov[,1:2] + (first_index - 1)
+  #   
+  #   # dyad_cov now has columns named: 
+  #   # node.1,    node.2,    (Intercept), household.diff, age.diff,    house_xpos.house_ypos.L2Dist, male,       female,       class1,    class2
+  #   # want columns to follow Hagelooch example: 
+  #   # Node ID 1, Node ID 2, Household,   Classroom 1,    Classroom 2, House Distance,               Male Match, Female Match, Age Diff
+  #   # so reorder columns
+  #   dyad_cov <- dyad_cov[,c(1:4, 9:10, 5, 7:8, 6)]
+  #   
   return(dyad_cov)
   
 }
