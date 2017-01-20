@@ -26,9 +26,12 @@ simseir <- function(M, N, beta, I0, ki, thetai, ke = ki, thetae = thetai, latenc
   is_infectious = is_exposed = is_removed = array(FALSE, N)
   is_susceptible = array(TRUE, N)
   
-  # get location of first infection
-  init <- sample(I0:N,1)  # Inital infected individual is chosen at random
-  
+  # get location of first infections
+  ## pull I0 samples from N and those are the individuals infected to start
+  init <- sample(N,I0)  # Inital infected individual is chosen at random
+  if(N == 1){
+    init <- N
+  }
   # update state vectors
   is_infectious[init] = TRUE
   is_susceptible[init] = FALSE
